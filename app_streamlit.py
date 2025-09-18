@@ -29,7 +29,14 @@ if st.button("🔍 立即檢查股價"):
     for stock, limits in st.session_state.watchlist.items():
         try:
             ticker = yf.Ticker(stock)
+
+            # 先嘗試抓當日分鐘線
             data = ticker.history(period="1d", interval="1m")
+
+            # 如果沒有資料，抓最近 5 天日線，取最後收盤價
+            if data.empty:
+                data = ticker.history(period="5d", interval="1d")
+
             if data.empty:
                 st.warning(f"{stock} 沒有數據")
                 continue
@@ -42,7 +49,7 @@ if st.button("🔍 立即檢查股價"):
                 color = "red"
                 condition = f"突破上限 {limits['upper']}"
             elif limits.get("lower") and last_price <= limits["lower"]:
-                color = "blue"
+                color = "green"
                 condition = f"跌破下限 {limits['lower']}"
             else:
                 color = "black"
@@ -55,4 +62,6 @@ if st.button("🔍 立即檢查股價"):
 
         except Exception as e:
             st.error(f"⚠️ {stock} 查詢失敗: {e}")
+
+
 
